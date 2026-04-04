@@ -7,4 +7,13 @@ wheels/
 *.egg-info
 
 # Virtual environments
-.venv
+.venv/
+fsgenai/        # 👈 IMPORTANT (your current env folder)
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
