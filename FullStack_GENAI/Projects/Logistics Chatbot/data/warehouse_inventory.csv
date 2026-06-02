@@ -1,0 +1,6 @@
+WarehouseID,WarehouseName,City,ProductCategory,AvailableStock,Capacity,UtilizationPercent
+WH001,Chennai_WH,Chennai,Electronics,500,1000,50
+WH002,Mumbai_WH,Mumbai,Furniture,300,800,37
+WH003,Delhi_WH,Delhi,Groceries,900,1200,75
+WH004,Bangalore_WH,Bangalore,Clothing,450,900,50
+WH005,Hyderabad_WH,Hyderabad,Electronics,700,1000,70

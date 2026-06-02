@@ -1,0 +1,6 @@
+RouteID,SourceCity,DestinationCity,DistanceKM,AverageDeliveryDays,RouteStatus
+R001,Chennai,Bangalore,350,2,Operational
+R002,Mumbai,Delhi,1400,4,Delayed
+R003,Chennai,Hyderabad,630,3,Operational
+R004,Bangalore,Pune,840,2,Operational
+R005,Delhi,Chennai,2200,5,Congested

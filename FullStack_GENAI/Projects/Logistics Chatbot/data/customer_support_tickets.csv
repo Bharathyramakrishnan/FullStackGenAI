@@ -1,0 +1,5 @@
+TicketID,OrderID,IssueType,Priority,Status,CreatedDate
+TK001,ORD2002,Delivery Delay,High,Open,2026-05-06
+TK002,ORD2003,Tracking Issue,Medium,Open,2026-05-05
+TK003,ORD2001,Damaged Package,High,Closed,2026-05-04
+TK004,ORD2005,Missing Shipment,High,Open,2026-05-07

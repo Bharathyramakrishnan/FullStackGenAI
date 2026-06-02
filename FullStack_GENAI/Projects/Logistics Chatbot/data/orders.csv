@@ -1,0 +1,6 @@
+OrderID,CustomerID,ProductCategory,OrderDate,OrderValue,Priority,OrderStatus
+ORD2001,CUST101,Electronics,2026-05-01,25000,High,Completed
+ORD2002,CUST102,Furniture,2026-05-02,40000,Medium,Pending
+ORD2003,CUST103,Groceries,2026-05-03,6000,High,Processing
+ORD2004,CUST104,Clothing,2026-05-03,7000,Low,Completed
+ORD2005,CUST105,Electronics,2026-05-05,18000,High,Pending

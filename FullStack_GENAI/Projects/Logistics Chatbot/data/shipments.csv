@@ -1,0 +1,6 @@
+ShipmentID,OrderID,SourceWarehouse,DestinationCity,Carrier,Status,DispatchDate,ExpectedDelivery,ActualDelivery,TransitDays
+SHP1001,ORD2001,Chennai_WH,Bangalore,BlueDart,Delivered,2026-05-01,2026-05-03,2026-05-03,2
+SHP1002,ORD2002,Mumbai_WH,Delhi,DHL,Delayed,2026-05-02,2026-05-05,,6
+SHP1003,ORD2003,Chennai_WH,Hyderabad,FedEx,In Transit,2026-05-04,2026-05-06,,3
+SHP1004,ORD2004,Bangalore_WH,Pune,DHL,Delivered,2026-05-05,2026-05-07,2026-05-06,1
+SHP1005,ORD2005,Delhi_WH,Chennai,BlueDart,Delayed,2026-05-06,2026-05-08,,5
