@@ -1,245 +1,106 @@
 import streamlit as st
+from PIL import Image
+import tempfile
+import io
 
-from utils.router import route_text
+from providers.text_models import text_response
+from providers.image_models import generate_image,image_to_text
+from providers.audio_models import speech_to_text
+from providers.video_models import extract_frame
+from utils.audio_utils import save_uploaded_audio
+from utils.video_utils import save_uploaded_video,extract_frame,video_information
 
-from modalities.text import TextModality
-from modalities.image import ImageModality
-from modalities.audio import AudioModality
-from modalities.video import VideoModality
 
+########################################
 
-st.set_page_config(page_title="Multimodal Playground",page_icon="🚀",layout="wide")
+st.set_page_config(
 
-###################################################
-# CUSTOM CSS
-###################################################
+page_title="Multimodal Playground",
+
+layout="wide",
+
+page_icon="🚀"
+
+)
+
+########################################
 
 st.markdown("""
 
 <style>
 
-.stApp{
+.main{
 
 background:
 linear-gradient(
 135deg,
-#0F172A 0%,
-#111827 50%,
-#1E293B 100%
+#0f172a,
+#1e293b,
+#2563eb
 );
-
-color:white;
 
 }
 
-
-/* Main Title */
-
-.big-title{
-
-font-size:42px;
-
-font-weight:bold;
+section[data-testid="stSidebar"]{
 
 background:
 linear-gradient(
-90deg,
-#00DBDE,
-#FC00FF
-);
-
--webkit-background-clip:text;
-
--webkit-text-fill-color:transparent;
-
-text-align:center;
-
-padding-bottom:20px;
-
-}
-
-
-/* Cards */
-
-.card{
-
-background:#1E293B;
-
-padding:25px;
-
-border-radius:20px;
-
-box-shadow:
-0px 5px 25px rgba(
-0,
-0,
-0,
-0.4
+180deg,
+#111827,
+#1e40af
 );
 
 }
 
-
-/* Section Headers */
-
-h1,h2,h3{
-
-color:#FFFFFF !important;
-
-}
-
-
-/* Labels */
-
-label{
-
-color:#E5E7EB !important;
-
-font-weight:600 !important;
-
-font-size:16px !important;
-
-}
-
-
-/* Selectbox Text */
-
-.stSelectbox div[data-baseweb="select"]{
-
-background:#111827;
-
-color:white;
-
-border-radius:12px;
-
-}
-
-.stSelectbox div{
-
-color:white !important;
-
-}
-
-
-/* Text Area */
-
-.stTextArea textarea{
-
-background:#111827;
-
-color:white !important;
-
-border-radius:15px;
-
-font-size:16px;
-
-}
-
-
-/* Placeholder Text */
-
-textarea::placeholder{
-
-color:#9CA3AF !important;
-
-}
-
-
-/* Button */
-
-.stButton > button{
+.stButton button{
 
 width:100%;
 
-height:55px;
-
-font-size:20px;
-
-font-weight:bold;
-
-border:none;
+height:50px;
 
 border-radius:15px;
 
-background:
-linear-gradient(
-90deg,
-#00DBDE,
-#FC00FF
-);
+font-size:18px;
+
+font-weight:bold;
+
+background:#ff4b4b;
 
 color:white;
 
 }
 
+.outputbox{
 
-/* Output Card */
+padding:20px;
 
-.output-card{
+border-radius:15px;
 
 background:#111827;
-
-padding:25px;
-
-border-radius:20px;
-
-border:1px solid #374151;
-
-color:white;
-
-}
-
-
-/* Markdown Text */
-
-p{
-
-color:white !important;
-
-}
-
-
-/* Sidebar / widget text */
-
-[data-testid="stMarkdownContainer"]{
-
-color:white;
 
 }
 
 </style>
 
-""", unsafe_allow_html=True)
+""",
 
+unsafe_allow_html=True)
 
+########################################
 
-###################################################
-# TITLE
-###################################################
-
-st.markdown(
-'<div class="big-title">🚀 Multimodal Playground</div>',
-unsafe_allow_html=True
+st.title(
+"🚀 Multimodal AI Playground"
 )
 
 left,right=st.columns([1,3])
 
-
-###########################################
-# LEFT PANEL
-###########################################
+########################################
+# LEFT PANE
+########################################
 
 with left:
 
-    st.markdown(
-        "<div class='card'>",
-        unsafe_allow_html=True
-    )
-
-    st.markdown(
-        "<h2 style='color:white'>⚙ Configuration</h2>",
-        unsafe_allow_html=True
-    )
+    st.header("Settings")
 
     provider=st.selectbox(
 
@@ -247,269 +108,183 @@ with left:
 
         [
 
-            "groq",
+        "Groq",
 
-            "openai",
+        "HuggingFace",
 
-            "gemini",
-
-            "claude"
+        "Local"
 
         ]
 
     )
 
+    modality_from=st.selectbox(
 
-    modality=st.selectbox(
-
-        "Modality",
+        "From",
 
         [
 
-            "Text → Text",
+        "Text",
 
-            "Text → Image",
+        "Image",
 
-            "Image → Text",
+        "Audio",
 
-            "Text → Audio",
-
-            "Audio → Text",
-
-            "Text → Video",
-
-            "Video → Text"
+        "Video"
 
         ]
 
     )
 
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
+    modality_to=st.selectbox(
+
+        "To",
+
+        [
+
+        "Text",
+
+        "Image"
+
+        ]
+
     )
 
-
-###########################################
-# RIGHT PANEL
-###########################################
-
-uploaded_file=None
+########################################
+# RIGHT PANE
+########################################
 
 with right:
 
-    st.markdown(
-        "<div class='card'>",
-        unsafe_allow_html=True
+    st.header(
+    "Input"
     )
 
-    st.markdown(
-        "<h2 style='color:white'>💬 Prompt</h2>",
-        unsafe_allow_html=True
-    )
+    uploaded=None
+    prompt=None
 
-    prompt=st.text_area(
+    if modality_from=="Text":
+
+        prompt=st.text_area(
 
         "Enter Prompt",
 
         height=200
 
-    )
+        )
 
+    else:
 
-    ###################################
-    # Dynamic Upload Components
-    ###################################
+        uploaded=st.file_uploader(
 
-    if modality=="Image → Text":
+            f"Upload {modality_from}",
 
-        uploaded_file=st.file_uploader(
-
-            "Upload Image",
-
-            type=["png","jpg","jpeg"]
+            type=None
 
         )
 
+########################################
 
-    elif modality=="Audio → Text":
+    if st.button(
+    "Generate"
+    ):
 
-        uploaded_file=st.file_uploader(
+        with st.spinner(
+        "Processing..."
+        ):
 
-            "Upload Audio",
+            output=None
 
-            type=["mp3","wav"]
+########################
+# TEXT → TEXT
+########################
 
-        )
+            if modality_from=="Text" \
+            and modality_to=="Text":
 
+                output=text_response(
+                    prompt
+                )
 
-    elif modality=="Video → Text":
+########################
+# TEXT → IMAGE
+########################
 
-        uploaded_file=st.file_uploader(
+            elif modality_from=="Text" \
+            and modality_to=="Image":
 
-            "Upload Video",
+                image=generate_image(prompt)
+                st.image(image,use_container_width=True)
 
-            type=["mp4","mov"]
 
-        )
+########################
+# IMAGE → TEXT
+########################
 
+            elif modality_from=="Image":
 
-    generate=st.button(
-        "Generate ✨"
-    )
+                with tempfile.NamedTemporaryFile(
 
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
-    )
+                delete=False,
 
+                suffix=".jpg"
 
-###########################################
-# GENERATION
-###########################################
+                ) as tmp:
 
-if generate:
+                    tmp.write(
+                        uploaded.read()
+                    )
 
-    provider_obj=route_text(
-        provider
-    )
+                    path=tmp.name
 
-    response=""
+                output=image_to_text(
+                    path
+                )
 
+########################
+# AUDIO → TEXT
+########################
 
-    ###################################
-    # TEXT MODALITIES
-    ###################################
+            elif modality_from=="Audio":
 
-    text_model=TextModality(
-        provider_obj
-    )
+                audio_path=save_uploaded_audio(uploaded) 
+               # wav_path=convert_to_wav(audio_path)
+               # duration=audio_duration(wav_path)
+              #  st.info(f"Audio Duration: {duration} sec")
+                output=speech_to_text(audio_path)
 
-    if modality=="Text → Text":
+########################
+# VIDEO → TEXT
+########################
 
-        response=text_model.text_to_text(
-            prompt
-        )
+            elif modality_from=="Video":
 
+                video_path=save_uploaded_video(uploaded)
+                video_information=video_information(video_path)
+                frame=extract_frame(video_path)
+                output=image_to_text(frame)
 
-    elif modality=="Text → Image":
+########################
 
-        response=text_model.text_to_image(
-            prompt
-        )
+            if output:
 
+                st.markdown(
 
-    elif modality=="Text → Audio":
+                '<div class="outputbox">',
 
-        response=text_model.text_to_audio(
-            prompt
-        )
+                unsafe_allow_html=True
 
+                )
 
-    elif modality=="Text → Video":
+                st.subheader(
+                "Output"
+                )
 
-        response=text_model.text_to_video(
-            prompt
-        )
+                st.write(
+                output
+                )
 
-
-    ###################################
-    # IMAGE
-    ###################################
-
-    elif modality=="Image → Text":
-
-        if uploaded_file is None:
-
-            st.warning(
-                "Upload image first"
-            )
-
-            st.stop()
-
-
-        image_model=ImageModality(
-            provider_obj
-        )
-
-        response=image_model.image_to_text(
-
-            uploaded_file.read(),
-
-            prompt
-
-        )
-
-
-    ###################################
-    # AUDIO
-    ###################################
-
-    elif modality=="Audio → Text":
-
-        if uploaded_file is None:
-
-            st.warning(
-                "Upload audio"
-            )
-
-            st.stop()
-
-
-        audio_model=AudioModality(
-            provider_obj
-        )
-
-        response=audio_model.audio_to_text(
-
-            uploaded_file.read()
-
-        )
-
-
-    ###################################
-    # VIDEO
-    ###################################
-
-    elif modality=="Video → Text":
-
-        if uploaded_file is None:
-
-            st.warning(
-                "Upload video"
-            )
-
-            st.stop()
-
-
-        video_model=VideoModality(
-            provider_obj
-        )
-
-        response=video_model.video_to_text(
-
-            uploaded_file.read(),
-
-            prompt
-
-        )
-
-
-    ###################################
-    # OUTPUT
-    ###################################
-
-    st.markdown(
-    """
-    <div class='output-card'>
-    <h2>🧠 Output</h2>
-    """,
-    unsafe_allow_html=True
-    )
-
-    st.write(response)
-
-    st.markdown(
-        "</div>",
-        unsafe_allow_html=True
-    )
+                st.markdown(
+                "</div>",
+                unsafe_allow_html=True
+                )

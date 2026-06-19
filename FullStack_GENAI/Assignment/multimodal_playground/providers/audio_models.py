@@ -1,0 +1,17 @@
+import whisper
+import os
+FFMPEG_PATH = r"C:\Users\bhara\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.1-full_build\bin"
+
+os.environ["PATH"] += os.pathsep + FFMPEG_PATH
+
+model=whisper.load_model(
+"base"
+)
+
+def speech_to_text(audio):
+
+    result=model.transcribe(
+        audio
+    )
+
+    return result["text"]
